@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+***********************************************************************************
+*     CABECALHO DE CONFIGURACAO PADRAO DE UM PROJETO QUE UTILIZE SPRING 		  *
+***********************************************************************************
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jpa="http://www.springframework.org/schema/data/jpa" 
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+   						   http://www.springframework.org/schema/beans/spring-beans.xsd
+   						   http://www.springframework.org/schema/mvc
+   						   http://www.springframework.org/schema/mvc/spring-mvc.xsd
+   						   http://www.springframework.org/schema/context
+   						   http://www.springframework.org/schema/context/spring-context.xsd
+   						   http://www.springframework.org/schema/data/jpa
+   						   http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+   						   http://www.springframework.org/schema/tx
+   						   http://www.springframework.org/schema/tx/spring-tx.xsd">
+   						   
+	<!-- xmlns:jpa NAMESPACE DO SPRING DATA COM SUPORTE A JPA -->
+	<!-- xmlns:tx SUPORTE AS TRANSACOES, NA GERENCIA DOS POOLS DE CONEXOES -->
+
+	<!-- HABILITA A APLICACAO PARA TRABALHAR COM JSR-303, VALIDATION-API E COM O HIBERNATE VALIDATOR -->
+	<mvc:annotation-driven/>   
+	
+	<!-- MAPEANDO OS RECURSOS DA APLICACAO (JQUERY E BOOTSTRAP) -->	  
+	<mvc:resources location="/WEB-INF/resources/" mapping="/resources/**"></mvc:resources>
+	
+	<!-- CONFIGURA EM QUAL PACKAGE ESTARAO OS CONTROLERS DA APLICACAO -->
+	<context:component-scan base-package="br.com.treinaweb.springmvc.controllers"/>
+	
+	<!-- BEAN RESPONSAVEL POR LER A URL SOLICITADA E FAZER A LIGACAO COM O CONTROLLER. APOS A RESPOSTA DO CONTROLLER, ESSE BEAN SERA O RESPONSAVEL
+	POR IDENTIFICAR QUAL JSP DEVE SER DEVOLVIDO COMO PAGINA PARA O USUARIO (O NOME DO BEAN DEVERÁ SER SEMPRE ESSE PARA O SPRING ENCONTRAR) -->
+	<bean id="viewResolver"
+		  class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		  
+		 <property name="viewClass"
+		   		   value="org.springframework.web.servlet.view.tiles3.TilesView"/>
+		 
+		  
+		  <!-- 
+		  UTILIZADO ANTES DE COMECARMOS A USAR TILES NA APLICACAO
+		  
+		  SPRING SERA RESPONSAVEL POR CRIAR OBJETOS DO TIPO DA CLASSE JstlView PARA PROCESSAR AS VIEWS RETORNADAS PELO UrlBasedViewResolver 
+		  <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property> 
+		  
+		   DEFINE O PREFIXO DA LOCALIZACAO ONDE AS VIEWS ESTARAO. ONDE O UrlBasedViewResolver E O JstlView IRAO PROCURAR AS VIEWS 
+		  <property name="prefix" value="/WEB-INF/views/"></property>
+		  
+		  DENTRO DA PASTA views IRA PROCURAR ARQUIVOS .jsp
+		  <property name="suffix" value=".jsp"></property>
+		  -->
+		  
+	</bean>
+	
+	<!-- CONFIGURA O BEAN ESPECIFICO PARA O TILES, ONDE INFORMA AONDE ESTARA O TILES.XML -->
+	<bean id="tilesConfigurer"
+		  class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+		  
+		  <!-- define a lista de arquivos que contenham configuracoes do Tiles (Observacao, o nome da propriedade tem que ser esse)-->
+		  <property name="definitions">
+		  	<list>
+		  		<value>/WEB-INF/tiles.xml</value>
+		  	</list>
+		  </property>
+	</bean>
+
+	<!-- BEAN RESPONSAVEL POR FAZER A VALIDACAO EM CIMA DA VALIDATION-API E DO HIBERNATE VALIDATOR declarados no pom.xml-->
+	<bean id="validator"
+		  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+		  
+
+	<!-- CONFIGURACOES DO SPRING DATA -->
+
+	<!-- Fonte de dados da aplicacao -->
+	<bean id="dataSource"
+		  class="org.apache.commons.dbcp2.BasicDataSource"
+		  destroy-method="close"> <!-- Fecha a conexao apos o uso da mesma -->
+		
+		<!-- Indica como o dbcp2 devera criar as conexoes, dbcp2 espera duas propriedades cujos nomes deverao ser driverClassName e url -->
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/treinawebspringmvc?useTimezone=true;serverTimezone=UTC;"></property> <!-- Necessario os parametros adicionais timezone para que nao gere conflito entre o banco e o hibernate por causa de fuso horario -->
+		<property name="username" value="root"></property>
+		<property name="password" value="root"></property>
+	</bean>
+	
+	<!-- Gerencia as conexoes e faz a conversao dos dados do modelo relacional ao modelo orientado a objetos -->
+	<bean id="entityManagerFactory"
+		  class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		
+		<!-- Define a fonte de dados do entityMenagerFactory -->
+		<property name="dataSource" ref="dataSource"></property> <!-- ref faz a referencia ao bean "dataSource" criado a cima -->
+		<property name="packagesToScan" value="br.com.treinaweb.springmvc.dominios"></property> <!-- Define onde estao as classes que possuem as anotacoes da JPA -->
+		<property name="jpaVenderAdapter" value="">  <!-- Define o provider JPA que sera utilizado (Hibernate)-->
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+		</property>
+		<!-- Propriedades necessarias para o funcionamento do provider (hibernate)-->
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop> <!-- Define o dialeto, o banco de dados que o hibernate ira utilizar -->	
+				<prop key="hibernate.show_sql">true</prop> <!-- Gere o log dos sqls que estao sendo gerados pelo hibernate -->
+				<prop key="hibernate.hbm2dll.auto">update</prop> <!-- Como ira lidar com o banco de dados, nesse caso, sempre tentara atualizar o banco de dados sincronizando com as annotations das minhas classes de dominio, se eu criar um atributo novo na minha classe, esse comando fará com que a coluna também seja criada no banco de dados -->
+			</props>
+		</property>
+	</bean>
+	
+	<!-- Define o bean que ira gerenciar as transacoes -->
+	<bean id="transactionManager" 
+		  class="org.springframework.orm.jpa.JpaTransactionManager">
+		
+		<!-- Define o entityManager que sera utilizado para gerenciar as conexoes -->
+		<property name="entityManagerFactory" ref="entityManagerFactory"></property> <!-- ref faz a referencia ao bean "entityManagerFactory" criado a cima -->
+	</bean>
+	
+	<!-- Define em qual pacote estao os repositorios (necessario para o funcionamento do Spring Data -->
+	<jpa:repositories base-package="br.com.treinaweb.springmvc.repositorios"></jpa:repositories> <!-- RepositoryPattern, a sua intencao é, separar, isolar, deixar transparente a maneira com que os dados sao acessados -->
+	
+</beans>
+
+<!-- COM O SPRING BOOT NÃO SERÁ NECESSÁRIO CONFIGURAR TODAS ESSAS LINHAS NOVAMENTE -->

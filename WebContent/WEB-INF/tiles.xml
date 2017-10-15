@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+		"-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+		"http://tiles.apache.org/dtds/tiles-config_3_0.dtd"> 
+
+<tiles-definitions>
+	
+	<!-- DEFINICOES DE BASE -->
+	<definition name="layout.tiles" template="/WEB-INF/views/layout/baseLayout.jsp">
+		<put-attribute name="title" value=""></put-attribute>
+		<put-attribute name="header" value="/WEB-INF/views/layout/header.jsp"></put-attribute>
+		<put-attribute name="body" value=""></put-attribute>
+		<put-attribute name="footer" value="/WEB-INF/views/layout/footer.jsp"></put-attribute>
+	</definition>
+	
+	<!-- DEFINICOES DE ALBUM -->
+	<!-- Defini como a página de adição deverá se comportar -->
+	<definition name="album.adicionar.tiles" extends="layout.tiles">
+		<!-- Extende o layout base, mas sobreescreve alguns atributos -->
+		<put-attribute name="title" value="TreinaWeb Spring MVC: Adição de álbuns"></put-attribute>
+		<put-attribute name="body" value="/WEB-INF/views/albuns/adicionar.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="album.exibir.tiles" extends="layout.tiles">
+		<put-attribute name="title" value="TreinaWeb Spring MVC: Exibição de álbuns"></put-attribute>
+		<put-attribute name="body" value="/WEB-INF/views/albuns/exibir.jsp"></put-attribute>
+	</definition>
+	
+</tiles-definitions>
+
+<!-- Arquivo que contém as definições do tiles, quais serão os layouts e quais serão as páginas que deverão ser injetadas -->
